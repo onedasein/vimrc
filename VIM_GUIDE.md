@@ -250,8 +250,9 @@ config/layers.vim 中的 LoadScript 决定启用哪些图层：
 
 ## 6. 主题与显示
 
-- 主题：tokyonight（night 风格、斜体、透明背景），配置文件：config/theme/theme.vim
-- cursorline 高亮当前行、colorcolumn=80 标出第 80 列
+- 主题：edge（style=default、斜体、透明背景），配置文件：config/theme/theme.vim
+  （原 tokyonight 配置保留在注释中，方便对比/换回，见第 11 章）
+- cursorline 高亮当前行；第 80 列竖线 colorcolumn 默认关闭（需要时在 theme.vim 取消注释）
 - set list + listchars：显示制表符、行尾 ¬、尾随空格 ·
 - 状态栏：airline（Powerline 字体、tabline、窗口号、coc 状态）
 - 补全弹窗高度 pumheight=20，Neovim 下 pumblend=20 半透明
@@ -282,6 +283,9 @@ config/layers.vim 中的 LoadScript 决定启用哪些图层：
 - F1-F4 功能键错乱（变成粘贴/Ex/Replace/插入）：Windows Terminal 发送 ESC O P/Q/R/S（SS3），
   与本机 terminfo 记录的 ESC[11;*~ 不一致；config/base.vim 已强制 t_k1-t_k4 为 SS3 形式，
   修改后需完全重启 Vim。
+- vim 和 nvim 同一文件高亮颜色不一致：两个编辑器已统一为同一份 tokyonight 配色与同一份
+  C/C++ 语法文件（~/dotfiles/syntax/，源自 vim 9.1）；剩余观感差异几乎都是真彩色渲染问题，
+  检查 :echo &termguicolors（应为 1）、终端 $COLORTERM=truecolor、tmux 需加 RGB 覆盖。
 - 打开 tex 提示 latexmk is not executable：TeX Live 还没装，见 10.1 安装命令。
 - vimtex 提示版本不支持：本配置已将 vimtex 固定到 v2.15（见 10.6），
   兼容 Vim 9.1 / nvim 0.9.5；以后升级编辑器后可去掉 tag 参数换最新版。
@@ -401,3 +405,63 @@ config/plugins/vimtex.vim 中的 g:vimtex_version_check = 0 保留作为双保�
 bmark / blist / bdelete（书签）、exec <命令>（$FILE/$PAGE/$DBUS 变量）、export、dump。
 
 自定义：~/.config/zathura/zathurarc 中用 set 改选项、map 改按键，详见 man zathurarc；完整手册 man zathura。
+
+---
+
+## 11. 更换主题与配色
+
+### 11.1 主题由哪几个文件决定
+
+| 文件 | 作用 |
+| --- | --- |
+| config/layers/theme.vim | 主题插件列表（要装哪个主题就在这里加 Plug） |
+| config/theme/theme.vim | 真彩色/tmux 修复、光标与显示设置、colorscheme 行、主题专属变量 |
+| config/plugins/tokyonight-vim.vim | tokyonight 专属变量（style/italic/transparent） |
+| config/plugins/vim-airline.vim | 状态栏主题（g:airline_theme） |
+
+### 11.2 换一个现成主题（以 gruvbox 为例）
+
+1. 在 config/layers/theme.vim 中加一行：
+
+       Plug 'morhetz/gruvbox'
+
+2. 打开 Vim 执行 :PlugInstall；
+3. 编辑 config/theme/theme.vim：
+   - 注释掉 tokyonight 的三行变量与 colorscheme tokyonight；
+   - 改为 colorscheme gruvbox（可按需加主题变量，如 let g:gruvbox_contrast_dark = 'hard'）；
+4. 状态栏配色：在 config/plugins/vim-airline.vim 中加 let g:airline_theme = 'gruvbox'；
+5. 重启 Vim（或 :source ~/dotfiles/init.vim 后再 :colorscheme gruvbox）。
+   vim 与 nvim 共用同一套配置，改一次两边同时生效。
+
+### 11.3 先临时试试（不写死配置）
+
+主题插件装好后，在任意会话里执行 :colorscheme gruvbox 即可立即预览；
+满意了再按 11.2 写进配置。
+
+### 11.4 自定义配色（微调某个高亮组）
+
+colorscheme 之后用 :hi 覆盖个别组的颜色（写在 config/theme/theme.vim 的
+colorscheme 行之后即可，重启保留）：
+
+    hi Comment guifg=#6b7089 gui=italic
+    hi LineNr  guifg=#3b4261 guibg=NONE
+    hi Visual  guibg=#3d59a1
+
+- 查某个词属于哪个组：光标放到词上，执行
+  :echo synIDattr(synIDtrans(synID(line('.'), col('.'), 1)), 'name')
+- 列出当前所有高亮组：:hi
+- 颜色预览：:hi Keyword guifg=#ff00ff
+
+### 11.5 常用主题参考（vime layers/theme.vim 里都列过）
+
+edge（当前默认）、tokyonight、gruvbox / gruvbox-material、onedark、nord、sonokai、
+one、ayu、moonfly、srcery、everforest（forest-night 仓库已改名）、PaperColor 等。
+
+### 11.6 注意事项
+
+- 换主题后状态栏（airline）可能还是旧配色：记得设置 g:airline_theme；
+- 部分主题有专属变量（gruvbox 的 contrast、sonokai 的 style 等），在其插件配置里设置；
+- tokyonight 的透明背景靠 g:tokyonight_transparent_background = 1；其他主题若想透明，
+  可加 hi Normal guibg=NONE；
+- C/C++ 语法文件在 ~/dotfiles/syntax/（源自 vim 9.1），与主题无关，换主题不受影响；
+- 两个编辑器共用配置，改一处两边生效。

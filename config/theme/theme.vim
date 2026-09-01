@@ -37,8 +37,18 @@ if has('nvim')
     set pumblend=20
 endif
 
-" TokyoNight 主题
-let g:tokyonight_style = 'night'
-let g:tokyonight_enable_italic = 1
-let g:tokyonight_transparent_background = 1
-silent! colorscheme tokyonight
+" ============================================================
+" 主题：当前使用 Edge（2026-01 版本）
+" ============================================================
+
+" ---- 原 TokyoNight（要换回就取消注释，并把下面 Edge 部分注释掉）----
+" let g:tokyonight_style = 'night'
+" let g:tokyonight_enable_italic = 1
+" let g:tokyonight_transparent_background = 1
+" silent! colorscheme tokyonight
+
+" ---- Edge（对比 TokyoNight 的配置写法）----
+let g:edge_style = 'default'              " 对应 tokyonight 的 night（另有 aura/neon 等风格可试）
+let g:edge_enable_italic = 1              " 对应 tokyonight_enable_italic = 1
+let g:edge_transparent_background = 1     " 对应 tokyonight_transparent_background = 1
+silent! colorscheme edge

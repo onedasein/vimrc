@@ -1,4 +1,6 @@
 " vim-airline 配置（保留并强化）
+" 状态栏主题跟随当前配色（edge）；换回 tokyonight 时改回 'tokyonight'
+let g:airline_theme = 'tokyonight'
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#tabline#formatter = 'unique_tail'
