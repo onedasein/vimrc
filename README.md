@@ -1,7 +1,5 @@
 # vime 使用指南（Vim / Neovim）
-> 本指南对应 ~/dotfiles 下的 vime 风格模块化配置：
-由上游 fgheng/vime 项目改造而来，保留了你原有的tokyonight 主题 / LeaderF 检索 / gutentags 标签 / coc 补全 / airline 状态栏 等插件，采用 vime 的 config/ + layers/ + plugins/ 分层结构。入口：~/.vimrc -> ~/dotfiles/vimrc -> ./init.vim（Vim 与 Neovim 通用）。
-
+> 本指南对应vime 风格模块化配置：由上游 vime 项目改造而来，保留了LeaderF 检索 / gutentags 标签 / coc 补全 / airline 状态栏 等插件，采用 vime 的 config/ + layers/ + plugins/ 分层结构。
 ---
 
 ## 1. 这是什么
