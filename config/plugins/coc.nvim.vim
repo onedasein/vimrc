@@ -2,16 +2,16 @@
 " 保留默认 coc_data_home（~/.config/coc），避免重新下载已装的 coc 扩展
 let g:coc_config_home = g:other_config_root_path
 
-" 检查当前光标前面是不是空白字符
-function! s:check_back_space() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" tab 触发补全或选择下一个
+" tab 触发补全或选择下一个。
+" 行首 / 光标前是空白字符 → 返回 "\<TAB>"（配合 expandtab+softtabstop 插入 4 空格缩进）；
+" 光标紧跟单词后 → 触发 coc 补全。
+" 判断用 autoload 函数 common#functions#CheckBackSpace() 而非 s: 脚本函数或内联表达式：
+" 1) <SID> 会在映射建立时固化成 <SNR>xxx_，配置重复 source 后函数 SID 变化，旧映射
+"    指向已不存在的函数，行首按 Tab 报 E117: Unknown function；
+" 2) vim 脚本里 '|' 是命令分隔符，内联写 || 会把映射 RHS 从第一个 '|' 处截断。
 inoremap <silent><expr> <TAB>
     \ pumvisible() ? "\<c-n>" :
-    \ <SID>check_back_space() ? "\<TAB>" :
+    \ common#functions#CheckBackSpace() ? "\<TAB>" :
     \ coc#refresh()
 inoremap <silent><expr> <S-TAB>
     \ pumvisible() ? "\<C-p>" :
@@ -64,10 +64,7 @@ nnoremap <silent> K :call <SID>show_documentation()<CR>
 " 签名帮助
 nnoremap <silent> <leader>k :call CocActionAsync('showSignatureHelp')<CR>
 
-" 格式化
-if !common#functions#HasPlug('neoformat')
-    command! -nargs=0 Format :call CocAction('format')
-endif
+" 格式化：统一走 config/format.vim 的 :Format / <leader>f（按 filetype 调外部格式化器）
 
 " 函数/类文本对象（无 treesitter 时用 coc）
 if !common#functions#HasPlug('nvim-treesitter')

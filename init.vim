@@ -23,6 +23,9 @@ exec 'source ' . g:vim_root_path . 'config.vim'
 " 载入基础配置
 LoadScript base.vim
 
+" 载入格式化配置（:Format / <leader>f，按 filetype 调外部格式化器）
+LoadScript format.vim
+
 " vim-plug 载入插件
 call plug#begin(get(g:, 'plugins_install_path', '~/.vim/plugged'))
 LoadScript layers.vim

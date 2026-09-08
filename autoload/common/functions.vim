@@ -68,6 +68,16 @@ function! common#functions#HasCocPlug(plugName) abort
     endif
 endfunction
 
+function! common#functions#CheckBackSpace() abort
+    " 判断光标前是否为行首或空白字符（用于 coc 智能 Tab 映射：
+    " 行首/空白后按 Tab 应插入缩进，而非触发补全）。
+    " 必须用 autoload 全局函数名而不是脚本内 s: 函数：映射建立时 <SID> 会固化成
+    " <SNR>xxx_ 名字，配置被重复 source 后函数换新脚本号，旧映射指向的函数已不存在，
+    " 行首按 Tab 会报 E117: Unknown function: <SNR>xxx_check_back_space。
+    let l:col = col('.') - 1
+    return !l:col || getline('.')[l:col - 1] =~# '\s'
+endfunction
+
 function! common#functions#Wall() abort
     " 写入所有文件
     " 记录当前的tab以及window
@@ -304,4 +314,49 @@ function! common#functions#CocStatus() abort
         return ""
     endif
     return coc#status()
+endfunction
+
+function! common#functions#FormatBuffer() abort
+    " 按 &filetype 选择外部格式化器，格式化整个 buffer。
+    " 命令表由 config/format.vim 提供（g:format_cmd_by_ft），%s = 当前文件路径。
+    let l:table = get(g:, 'format_cmd_by_ft', {})
+    let l:ft    = &filetype
+    let l:tpl   = get(l:table, l:ft, '')
+    if empty(l:tpl)
+        echohl WarningMsg
+        echomsg '[format] 未配置格式化器：' . (empty(l:ft) ? '(无 filetype)' : l:ft)
+        echohl None
+        return
+    endif
+
+    " %s -> 当前文件路径（shellescape 防空格/特殊字符；注意内层必须用双引号，
+    " 因为单引号字符串里的 '' 是转义引号，写 '%:p' 会被解析成 ':p'）
+    let l:cmd = substitute(l:tpl, '%s', '\=shellescape(expand("%:p"))', 'g')
+    let l:exe = split(l:cmd)[0]
+    if !executable(l:exe)
+        echohl WarningMsg
+        echomsg '[format] 未安装：' . l:exe . '（已跳过）'
+        echohl None
+        return
+    endif
+
+    let l:input  = join(getline(1, '$'), "\n") . "\n"
+    let l:output = systemlist(l:cmd, l:input)
+    if v:shell_error != 0 || empty(l:output)
+        echohl ErrorMsg
+        echomsg '[format] 失败：' . l:exe . ' (exit ' . v:shell_error . ')'
+        echohl None
+        return
+    endif
+
+    " 写回：保持视图与光标，整次格式化算一个 undo 步骤
+    let l:view = winsaveview()
+    let l:last = line('$')
+    silent keepjumps call setline(1, l:output)
+    if len(l:output) < l:last
+        silent! undojoin
+        silent execute (len(l:output) + 1) . ',$delete _'
+    endif
+    call winrestview(l:view)
+    echomsg '[format] ' . l:ft . ' -> ' . l:exe
 endfunction

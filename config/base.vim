@@ -72,6 +72,8 @@ set autoread
 set autowrite
 " 显示确认对话框
 set confirm
+" 显示输入的部分命令（状态栏右下角；老 vimrc 有，拆分配置时漏掉了）
+set showcmd
 " 不显示模式提示（airline/状态栏会显示）
 set noshowmode
 set ttimeout
