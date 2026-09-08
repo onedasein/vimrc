@@ -1,0 +1,18 @@
+---
+# 全局 C/C++ 风格（clang-format 会从文件所在目录逐级向上查找，项目里的
+# .clang-format 优先级更高，可覆盖本文件）
+Language: Cpp
+BasedOnStyle: Google
+IndentWidth: 4          # 与 vim 的 shiftwidth=4 保持一致
+TabWidth: 4
+UseTab: Never           # 只用空格（配合 vim 的 expandtab）
+ColumnLimit: 100        # 行宽上限
+PointerAlignment: Left  # 指针/引用贴类型：int* p（Right 则写成 int *p）
+BreakBeforeBraces: Attach   # 花括号风格：K&R/Attach；要 Allman（另起一行）改成 Allman
+AllowShortFunctionsOnASingleLine: Empty
+SortIncludes: true      # 自动排序 #include
+IncludeBlocks: Regroup
+# 其它常用开关：
+#   BreakBeforeBraces: Stroustrup   # 函数另起一行、控制语句贴住
+#   AlignConsecutiveAssignments: true
+#   SpaceBeforeParens: ControlStatements
