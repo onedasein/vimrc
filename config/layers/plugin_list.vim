@@ -12,3 +12,5 @@ Plug 'frazrepo/vim-rainbow'
 Plug 'puremourning/vimspector'
 " markdown 浏览器实时预览（:MarkdownPreview 懒加载）
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() }, 'for': ['markdown'], 'on': 'MarkdownPreview' }
+" 编码时长统计（安装后重启 Vim，执行 :WakaTimeApiKey 填 API key）
+Plug 'wakatime/vim-wakatime'
