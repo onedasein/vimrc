@@ -85,3 +85,25 @@ nnoremap <silent> <space>O  :<C-u>CocList --auto-preview --interactive symbols<c
 nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 nnoremap <silent> <space>l  :<C-u>CocList<CR>
+
+" ============================================================
+" VSCode 风格的诊断外观（2026-10 新增）
+" ------------------------------------------------------------
+" coc 默认把 Coc*Highlight 链接到 CocUnderline，那是**直线**下划线；
+" VSCode 的报错是**彩色波浪线**。这里改成 undercurl。
+" 终端不支持 undercurl 时会自动退化成普通下划线，不影响使用。
+" ctermul 管 256 色终端、guisp 管真彩。注意 ctermul 只能填颜色号，填 #rrggbb 会报 E421 卡住启动。
+" ============================================================
+function! s:coc_vscode_diagnostic_style() abort
+    hi CocErrorHighlight   cterm=undercurl ctermul=203 gui=undercurl guisp=#ff5555
+    hi CocWarningHighlight cterm=undercurl ctermul=215 gui=undercurl guisp=#ffb86c
+    hi CocInfoHighlight    cterm=undercurl ctermul=117 gui=undercurl guisp=#8be9fd
+    hi CocHintHighlight    cterm=undercurl ctermul=141 gui=undercurl guisp=#bd93f9
+endfunction
+
+augroup vime_coc_vscode_diagnostic_style
+    autocmd!
+    " 换配色会重置 highlight，VimEnter 时 coc 自己也重设一次，都补回来
+    autocmd ColorScheme,VimEnter * call s:coc_vscode_diagnostic_style()
+augroup END
+call s:coc_vscode_diagnostic_style()

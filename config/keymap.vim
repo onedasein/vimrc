@@ -114,5 +114,23 @@ tnoremap <silent> <M-H> <c-\><c-n>:tabmove -1<cr>
 " 使用系统应用打开当前buffer文件
 noremap <silent> <M-x> :call common#functions#OpenFileUsingSystemApp(expand('%:p'))<cr>
 
+" ============================================================
+" leaf 终端 Markdown 实时预览（RivoLink/leaf）
+" 实现见 autoload/common/functions.vim；leaf 用 --watch，:w 保存即自动刷新
+" ============================================================
+" <leader>md  开关式预览（打开后焦点自动回到编辑窗，可继续写）
+" <leader>mD  打开预览并把焦点留在预览窗（方便先滚动看看效果）
+" 宽度可通过 let g:leaf_preview_width = 90 调整（默认 90 列）
+command! -bar LeafPreview       call common#functions#LeafPreviewToggle()
+command! -bar LeafPreviewClose  call common#functions#LeafPreviewClose()
+command! -bar LeafPreviewFocus  call common#functions#LeafPreviewToggle('keepfocus')
+
+augroup vime_leaf_preview_group
+    autocmd!
+    " 只在 markdown 文件里挂映射，避免污染其他 filetype
+    autocmd FileType markdown nnoremap <buffer> <silent> <leader>md :<C-u>call common#functions#LeafPreviewToggle()<cr>
+    autocmd FileType markdown nnoremap <buffer> <silent> <leader>mD :<C-u>call common#functions#LeafPreviewToggle('keepfocus')<cr>
+augroup END
+
 " F5 编译运行 C/C++（保留原配置）
 map <F5> :!clear && g++ % -o %< && ./%< <CR>

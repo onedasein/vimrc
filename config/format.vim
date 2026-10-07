@@ -9,6 +9,10 @@
 " %s 会被替换为当前文件路径：用于语言判断、向上查找 .clang-format / .prettierrc
 " 注：字典续行内不能写行尾 " 注释（Vimscript 会当成字符串起始，报 E114）
 "     Python 未装 ruff 时，把下面的 'ruff format -' 换成 'black -q -' 即可
+" 注：markdown 故意不进表 —— prettier 会重排段落/列表/表格，破坏 md 原有排版
+"     （行尾两个空格的硬换行、表格对齐、列表标记与编号等），故不做自动处理。
+"     确实需要时再手动跑 `prettier --write file.md`；想恢复自动格式化，把
+"     'markdown' 同时加回本表与下面的 g:format_on_save_filetypes 即可。
 let g:format_cmd_by_ft = {
     \ 'c':               'clang-format -assume-filename=%s',
     \ 'cpp':             'clang-format -assume-filename=%s',
@@ -24,7 +28,6 @@ let g:format_cmd_by_ft = {
     \ 'css':             'prettier --stdin-filepath %s',
     \ 'scss':            'prettier --stdin-filepath %s',
     \ 'html':            'prettier --stdin-filepath %s',
-    \ 'markdown':        'prettier --stdin-filepath %s',
     \ 'yaml':            'prettier --stdin-filepath %s',
     \ 'sh':              'shfmt -',
     \ 'bash':            'shfmt -',
@@ -45,7 +48,7 @@ autocmd FileType c,cpp,objc,cuda setlocal equalprg=clang-format\ -assume-filenam
 let g:format_on_save = get(g:, 'format_on_save', 1)
 let g:format_on_save_filetypes = get(g:, 'format_on_save_filetypes',
     \ ['c', 'cpp', 'objc', 'cuda', 'python', 'javascript', 'typescript',
-    \  'json', 'jsonc', 'css', 'html', 'yaml', 'markdown', 'sh', 'lua'])
+    \  'json', 'jsonc', 'css', 'html', 'yaml', 'sh', 'lua'])
 
 augroup vime_format_on_save
     autocmd!

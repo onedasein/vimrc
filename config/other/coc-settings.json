@@ -37,5 +37,20 @@
     "diagnostic.hintSign": "●",
     "diagnostic.displayByAle": false,
     "diagnostic.maxWindowHeight": 10,
-    "languageserver": {}
+    "languageserver": {},
+    "diagnostic.enable": true,
+    "diagnostic.enableMessage": "always",
+    "diagnostic.enableSign": true,
+    "diagnostic.checkCurrentLine": true,
+    "diagnostic.messageTarget": "float",
+    "diagnostic.level": "hint",
+    "diagnostic.signLevel": "hint",
+    "diagnostic.virtualText": true,
+    "diagnostic.virtualTextCurrentLineOnly": false,
+    "diagnostic.autoRefresh": true,
+    "diagnostic.refreshOnInsertMode": false,
+    "diagnostic.showUnused": true,
+    "diagnostic.showDeprecated": true,
+    "inlayHint.enableParameter": false,
+    "inlayHint.enable": false
 }

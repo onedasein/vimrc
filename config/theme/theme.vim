@@ -12,6 +12,19 @@ if has('termguicolors')
     set termguicolors
 endif
 
+" ------------------------------------------------------------
+" 终端下的波浪线（undercurl）
+" ------------------------------------------------------------
+" 关键：Vim 的 undercurl 在终端里**默认不可用就静默降级成直线下划线**
+" （:help underline-codes），因为 t_Cs（curly underline start）默认为空。
+" 显式给出 SGR 4:3 / 4:0 才会真的画波浪线；t_Ce 同时也是各种下划线样式的结束码。
+" 前提：外层终端要支持 SGR 4:3。Windows Terminal 支持；tmux 需要 usstyle 透传
+" （:help terminal-features）。终端不支持时不会报错，只是退回直线下划线。
+if !has('gui_running')
+    let &t_Cs = "\e[4:3m"
+    let &t_Ce = "\e[4:0m"
+endif
+
 " 高亮当前行
 set cursorline
 " 第 80 列竖线提示（代码风格用；不想要就保持注释）

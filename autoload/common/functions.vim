@@ -360,3 +360,120 @@ function! common#functions#FormatBuffer() abort
     call winrestview(l:view)
     echomsg '[format] ' . l:ft . ' -> ' . l:exe
 endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" leaf 终端 Markdown 实时预览（RivoLink/leaf，--watch 保存即刷新）
+" 快捷键见 config/keymap.vim：<leader>md 开关，<leader>mD 打开后把焦点留在预览窗
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" 记住当前 leaf 预览窗口，供开关复用
+let s:leaf_winid = 0
+
+function! s:LeafIsPreviewWin(winid) abort
+    " 判断窗口是否是本插件开的 leaf 终端窗口（优先用 job 可执行文件判定，
+    " 退化为匹配 buffer 名，兼容没有 jobpid() 的场景）
+    if a:winid <= 0 || !win_id2win(a:winid)
+        return v:false
+    endif
+    if !has('terminal')
+        return v:false
+    endif
+    let l:buf = winbufnr(a:winid)
+    if getbufvar(l:buf, '&buftype') !=# 'terminal'
+        return v:false
+    endif
+    if exists('*jobpid')
+        let l:pid = jobpid(getbufvar(l:buf, '&channel'))
+        if l:pid > 0
+            return match(system('ps -o comm= -p ' . l:pid), 'leaf') >= 0
+        endif
+    endif
+    return bufname(l:buf) =~# '\v<leaf>( |$)'
+endfunction
+
+function! common#functions#LeafPreviewClose() abort
+    " 关闭 leaf 预览窗口；没有则返回 0
+    if s:LeafIsPreviewWin(s:leaf_winid)
+        silent! execute win_id2win(s:leaf_winid) . 'close!'
+        let s:leaf_winid = 0
+        return 1
+    endif
+    " 兜底：扫描所有窗口（例如 vim 重开、winid 失效）
+    let l:closed = 0
+    for l:w in getwininfo()
+        if s:LeafIsPreviewWin(l:w.winid)
+            silent! execute l:w.winnr . 'close!'
+            let l:closed = 1
+        endif
+    endfor
+    let s:leaf_winid = 0
+    return l:closed
+endfunction
+
+function! common#functions#LeafPreviewToggle(...) abort
+    " 开关式 leaf 预览。参数：'keepfocus' = 打开后焦点留在预览窗（默认回到编辑窗）
+    let l:keepfocus = a:0 > 0 && a:1 ==# 'keepfocus'
+
+    if s:LeafIsPreviewWin(s:leaf_winid)
+        call common#functions#LeafPreviewClose()
+        echomsg '[leaf] 预览已关闭'
+        return
+    endif
+
+    if !executable('leaf')
+        echohl WarningMsg
+        echomsg '[leaf] 未找到 leaf 可执行文件（应位于 ~/.local/bin/leaf）'
+        echohl None
+        return
+    endif
+
+    let l:file = expand('%:p')
+    if empty(l:file)
+        echohl WarningMsg
+        echomsg '[leaf] 当前 buffer 没有文件名，先 :w 保存'
+        echohl None
+        return
+    endif
+    if &modified
+        silent! write
+    endif
+
+    " 注意：:terminal 不像 :! 那样走 shell 解析，单引号会被原样传给 leaf，
+    " 所以这里不能用 shellescape()（它会生成 '...' 导致 leaf 报
+    " "Not a valid file"）；改为把路径放进 bash -c 的双引号里，只转义 bash 特殊字符
+    let l:escaped = escape(l:file, '\$`"')
+
+    let l:width  = get(g:, 'leaf_preview_width', 90)
+    let l:editor = win_getid()
+
+    " 先切窗口、立刻记录 winid：中间任何 BufEnter 自动命令报错都不会让状态残留。
+    " try 只包住"建窗口 + 起进程"这一段：其他自动命令（LeaderF/wakatime 等）的报错
+    " 不该被当成启动失败而把已经开好的预览窗回收掉
+    try
+        execute 'vertical botright split | vertical resize ' . l:width
+        let s:leaf_winid = win_getid()
+        execute 'terminal ++curwin bash -c "leaf -w \"' . l:escaped . '\""'
+    catch
+        " 命令本身失败（例如 leaf 不在 PATH）时回收窗口，避免留下空终端
+        if s:LeafIsPreviewWin(s:leaf_winid)
+            silent! execute win_id2win(s:leaf_winid) . 'close!'
+        endif
+        let s:leaf_winid = 0
+        echohl ErrorMsg
+        echomsg '[leaf] 启动失败：' . v:exception
+        echohl None
+        return
+    endtry
+
+    " 以下步骤失败不影响预览本身，各自吞掉异常即可
+    silent! setlocal nonumber norelativenumber nolist wrap
+
+    " 进终端模式需要先切插入模式，否则显示空白
+    silent! startinsert
+
+    if !l:keepfocus
+        " 焦点回编辑窗口；leaf 在后台继续 watch，:w 后自动刷新
+        silent! call win_gotoid(l:editor)
+    endif
+    echomsg '[leaf] 预览已开启（保存自动刷新；' . (l:keepfocus ? '<Esc> 退出终端模式' : 'Ctrl+w h 回编辑窗') . '）'
+endfunction

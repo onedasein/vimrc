@@ -12,6 +12,19 @@ if has('autocmd')
     filetype plugin indent on
 endif
 
+" 关闭“注释自动延续”：
+"   r = 插入模式按 <Enter> 后自动插入注释符
+"   o = Normal 模式按 o/O 后自动插入注释符
+" 痛点：写行尾注释 `code; // xxx` 后回车，下一行会在同一列冒出 `//`。
+" 必须放在 filetype plugin indent on 之后注册，才会排在运行时 ftplugin
+" （它们会 `setlocal formatoptions+=croql`）后面执行，把 r/o 去掉。
+if has('autocmd')
+    augroup vime_no_comment_continue
+        autocmd!
+        autocmd FileType * setlocal formatoptions-=o formatoptions-=r
+    augroup END
+endif
+
 if has('multi_byte')
     set encoding=utf-8
     set fileencoding=utf-8
