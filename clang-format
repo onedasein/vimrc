@@ -49,6 +49,30 @@ PackConstructorInitializers: Never
 BreakConstructorInitializers: BeforeComma
 # 初始化列表的缩进宽度（可选，通常设为 4 或 8）
 ConstructorInitializerIndentWidth: 4
+
+#----- 数组/花括号列表的换行策略（2026-10 新增）-----
+# 目标：数组元素较多或较长时，一个元素占一行（比 bin-pack 成两三行更直观）。
+#
+# BinPackArguments: false
+#   语义 =「要么全部在一行，要么一元素一行」，禁止「能塞几个塞几个」。
+#   短数组不受影响（const int k[] = {1, 2, 3}; 仍是一行），也不需要写尾逗号。
+#
+# AlignAfterOpenBracket: BlockIndent
+#   换行时用块缩进，而不是对齐到 { 的位置。
+#   只加 BinPackArguments 会排成下面这样（结尾的花括号还会粘在最后），所以两个要一起用：
+#       const char *k[] = {"aaa",
+#                          "bbb"};
+#
+# 代价：AlignAfterOpenBracket 是全局的，所以超过 ColumnLimit 的长函数调用/声明
+#       也会变成「括号后换行 + 块缩进」。这一点没法只针对数组单独设置——因为
+#       Cpp11BracedListStyle 的设计就是让花括号列表按函数调用的方式排版。
+#       只想改某一个数组时，用 // clang-format off / on 把那段包起来。
+#
+# 注：加尾逗号**不能**达到这个效果——它只保证花括号不被收成一行，
+#     元素仍会被 bin-pack（2026-10 用 clang-format 18 在本机实测确认）。
+BinPackArguments: false
+AlignAfterOpenBracket: BlockIndent
+
 # 其它常用开关：
 #   BreakBeforeBraces: Stroustrup   # 函数另起一行、控制语句贴住
 #   AlignConsecutiveAssignments: true
